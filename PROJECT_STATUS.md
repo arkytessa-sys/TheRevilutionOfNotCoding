@@ -1,7 +1,8 @@
 # MainStage — Project Status
 
 **Last Updated:** 2026-07-05  
-**Current Phase:** 1 — Authentication (✓ Complete)
+**Current Phase:** 2 — Admin Dashboard (✓ Complete)  
+**Previous Phases:** 1 — Authentication (✓ Complete)
 
 ---
 
@@ -17,98 +18,93 @@ MainStage is a small-scale, educational social media platform inspired by Facebo
 
 ---
 
+## Phase 2: Admin Dashboard — ✓ COMPLETE
+
+### Completed
+- [x] `@admin_only` decorator for access control
+- [x] Admin dashboard view
+  - Lists all users (paginated, 20 per page)
+  - Search by username, email, first/last name
+  - Filter by role (GUEST/ADMIN)
+  - Responsive user table with role badges
+- [x] User detail view
+  - Displays profile picture, email, full name, role, join date
+  - Shows admin action buttons
+  - Self-edit prevention
+- [x] Promote user (GUEST → ADMIN)
+  - POST-only for security
+  - Self-promotion prevented
+- [x] Demote user (ADMIN → GUEST)
+  - POST-only for security
+  - Self-demotion prevented
+- [x] Delete user (two-step confirmation)
+  - GET: Shows confirmation page with warning
+  - POST: Permanently deletes user
+  - Self-deletion prevented
+- [x] Updated URL routing
+- [x] Dashboard template with search/filter
+- [x] User detail template
+- [x] Delete confirmation template
+- [x] Base template with admin dashboard link
+- [x] All user-facing messages (success/error/info)
+- [x] Database optimization (no N+1 queries)
+
+### Files Added/Modified
+```
+accounts/
+  decorators.py          # NEW: @admin_only
+  views.py               # UPDATED: 5 new admin views
+  urls.py                # UPDATED: 5 new admin routes
+
+templates/accounts/
+  dashboard.html         # NEW
+  user_detail.html       # NEW
+  delete_user.html       # NEW
+
+templates/
+  base.html              # UPDATED: Dashboard link + styling
+```
+
+### Key Features
+- ✅ Only admins can access `/accounts/dashboard/`
+- ✅ Search works across multiple fields
+- ✅ Role-based filtering
+- ✅ Pagination preserves search/filter params
+- ✅ Promote/demote/delete are one-click (with confirmations)
+- ✅ Admins cannot modify themselves
+- ✅ Visual role badges (Admin: blue, Guest: gray)
+
+---
+
 ## Phase 1: Authentication — ✓ COMPLETE
 
 ### Completed
-- [x] Custom `User` model extending `AbstractUser`
-  - `role` field: GUEST (default) / ADMIN, indexed for Phase 2
-  - `profile_picture` field with 2MB size validation
-- [x] Registration form with email required + validation
-- [x] Auto-login after successful registration
-- [x] Login view with username/password
-- [x] Logout view (POST only for security)
-- [x] Project structure with accounts & core apps
-- [x] SQLite configuration with WAL mode and IMMEDIATE transactions
-- [x] Base template with responsive navigation
-- [x] Authentication templates (register, login)
-- [x] Home page placeholder with roadmap
-- [x] All Django checks passing
-- [x] Database migrations ready to apply
-
-### Files Added
-```
-mainstage/
-  settings.py           # SQLite WAL config, AUTH_USER_MODEL set
-  urls.py              # Main router
-  wsgi.py              # WSGI application
-  __init__.py
-
-accounts/
-  models.py            # Custom User model
-  forms.py             # Registration & login forms
-  views.py             # register, login, logout views
-  urls.py              # accounts routing (app_name='accounts')
-  admin.py             # User admin interface
-  apps.py
-  __init__.py
-  migrations/
-
-core/
-  models.py            # Placeholder for Phase 3
-  views.py             # Home view (login_required)
-  urls.py              # core routing (app_name='core')
-  admin.py             # Placeholder
-  apps.py
-  __init__.py
-  migrations/
-
-templates/
-  base.html            # Main layout with navigation
-  accounts/
-    register.html
-    login.html
-  core/
-    home.html
-
-static/
-  (placeholder for CSS/JS in future phases)
-
-manage.py
-requirements.txt
-.gitignore
-```
+- [x] Custom User model with role field (indexed)
+- [x] Registration (email required, auto-login)
+- [x] Login/logout
+- [x] Profile picture uploads (2MB validation)
+- [x] Base templates + navigation
+- [x] Home page placeholder
+- [x] SQLite WAL configuration
 
 ---
 
-## Phase 2: Admin Dashboard (Next)
+## Phase 3: Post/Feed System (Next)
 
 ### To Do
-- [ ] Admin-only dashboard view
-- [ ] List all users (paginated, select_related for efficiency)
-- [ ] View single user details
-- [ ] Promote/demote users between GUEST and ADMIN
-- [ ] Delete users (with soft-delete consideration)
-- [ ] Dashboard template with user table
-- [ ] URL routing for admin section
-- [ ] Access control decorator (`@admin_only`)
+- [ ] `Post` model: text, optional Markdown, optional media (image/video/audio)
+- [ ] Image/video/audio size validation
+- [ ] `Comment` model (FK to Post, text, author, timestamp)
+- [ ] `Like` model (ManyToMany or separate, unique together)
+- [ ] `Share` model (user, post, created_at)
+- [ ] Post create/edit/delete views
+- [ ] Feed view (paginated, select_related + prefetch_related)
+- [ ] Post templates
+- [ ] Like/comment/share endpoints (AJAX)
+- [ ] Post detail view with all interactions
 
 ### Rationale
-Admin dashboard depends on Phase 1's `role` field being indexed (✓ already done). Filters will run efficiently on the admin list view.
-
----
-
-## Phase 3: Post/Feed System
-
-### To Do
-- [ ] `Post` model: text, optional Markdown, optional image/video/audio
-- [ ] Image/video validation & size limits
-- [ ] `Comment` model (foreign key to Post)
-- [ ] `Like` model (ManyToMany or separate model)
-- [ ] `Share` model
-- [ ] Post create/edit/delete views
-- [ ] Feed view with paginated posts (select_related + prefetch_related)
-- [ ] Post templates
-- [ ] Like/comment/share AJAX endpoints
+Post system depends on Phase 1 & 2 being complete. Feed will be the main page after Phase 3 replaces the home placeholder.
 
 ---
 
@@ -116,16 +112,20 @@ Admin dashboard depends on Phase 1's `role` field being indexed (✓ already don
 
 ### To Do
 - [ ] Install Django Channels + channels_redis
-- [ ] `Message` model (user-to-user, optional media)
-- [ ] WebSocket consumers for real-time chat
-- [ ] Chat room/conversation routing
-- [ ] Chat templates + JavaScript
-- [ ] Message history (pagination)
+- [ ] ASGI configuration (`mainstage/asgi.py`)
+- [ ] Routing for WebSocket consumers
+- [ ] Conversation model (participants, created_at, updated_at)
+- [ ] Message model (user, conversation, text, media, created_at)
+- [ ] WebSocket consumer for chat
+- [ ] Chat list view (user's conversations)
+- [ ] Chat detail view (message history, paginated)
+- [ ] Message sending endpoint
+- [ ] Chat templates + JavaScript (real-time message append)
 
 ### Notes
 - Requires `ASGI` application setup
 - In-memory channel layer for dev; Redis for production
-- Async consumers + routing — significant architectural shift
+- Significant architectural shift — requires separate approval
 
 ---
 
@@ -144,38 +144,43 @@ Admin dashboard depends on Phase 1's `role` field being indexed (✓ already don
 
 ---
 
-## Setup Instructions
+## Setup & Testing
 
+### Initial Setup
 ```bash
-# Create virtual environment
 python -m venv .venv
-source .venv/bin/activate  # On Windows: .venv\Scripts\activate
-
-# Install dependencies
+source .venv/bin/activate
 pip install -r requirements.txt
-
-# Create migrations (User model already set as AUTH_USER_MODEL)
-python manage.py makemigrations
 python manage.py migrate
-
-# Create superuser (optional for Phase 2 onwards)
 python manage.py createsuperuser
-
-# Run development server
 python manage.py runserver
 ```
 
-**URL Routes:**
-- Admin: http://localhost:8000/admin
+### Testing Phase 2
+1. Create a regular user (GUEST) via registration
+2. Log in as superuser (created via `createsuperuser`)
+3. Navigate to `/accounts/dashboard/`
+4. Test:
+   - Search by username/email
+   - Filter by role
+   - View user details
+   - Promote user to ADMIN
+   - Demote user to GUEST
+   - Delete user (with confirmation)
+5. Verify non-admins cannot access `/accounts/dashboard/`
+
+### URL Routes
+- Home: http://localhost:8000/ (login required)
 - Register: http://localhost:8000/accounts/register/
 - Login: http://localhost:8000/accounts/login/
-- Home (login required): http://localhost:8000/
+- Dashboard: http://localhost:8000/accounts/dashboard/ (admin only)
+- User Detail: http://localhost:8000/accounts/user/<id>/ (admin only)
+- Admin: http://localhost:8000/admin/
 
 ---
 
 ## Next Steps (Approved by User)
 
-1. **Phase 2:** Build admin dashboard + user management
+1. **Phase 3:** Build Post/Feed system with comments, likes, shares
 2. Repeat approval cycle for each subsequent phase
 3. Keep this file and TODO.md in sync after each session
-
