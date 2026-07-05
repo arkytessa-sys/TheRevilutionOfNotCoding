@@ -1,0 +1,306 @@
+{% extends 'base.html' %}
+
+{% block title %}Admin Dashboard - MainStage{% endblock %}
+
+{% block extra_css %}
+    <style>
+        .dashboard-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .dashboard-header h1 {
+            color: #1877f2;
+        }
+
+        .stats {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            text-align: center;
+        }
+
+        .stat-card h3 {
+            margin: 0.5rem 0 0 0;
+            font-size: 1.5rem;
+        }
+
+        .stat-card p {
+            margin: 0;
+            font-size: 0.875rem;
+            opacity: 0.9;
+        }
+
+        .filters {
+            background: white;
+            padding: 1.5rem;
+            border-radius: 8px;
+            margin-bottom: 2rem;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .filters form {
+            display: grid;
+            grid-template-columns: 1fr 150px 100px;
+            gap: 1rem;
+            align-items: end;
+        }
+
+        .filters label {
+            display: block;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+            color: #333;
+        }
+
+        .filters input,
+        .filters select {
+            padding: 0.75rem;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            font-size: 1rem;
+        }
+
+        .filters button {
+            padding: 0.75rem 1rem;
+            background-color: #1877f2;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+
+        .filters button:hover {
+            background-color: #165fc4;
+        }
+
+        .users-table {
+            width: 100%;
+            background: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 1px 2px rgba(0, 0, 0, 0.1);
+        }
+
+        .users-table table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .users-table thead {
+            background-color: #f5f5f5;
+            border-bottom: 2px solid #e5e5e5;
+        }
+
+        .users-table th {
+            padding: 1rem;
+            text-align: left;
+            font-weight: 600;
+            color: #333;
+        }
+
+        .users-table td {
+            padding: 1rem;
+            border-bottom: 1px solid #e5e5e5;
+        }
+
+        .users-table tbody tr:hover {
+            background-color: #f9f9f9;
+        }
+
+        .role-badge {
+            display: inline-block;
+            padding: 0.25rem 0.75rem;
+            border-radius: 20px;
+            font-size: 0.875rem;
+            font-weight: 600;
+        }
+
+        .role-badge.admin {
+            background-color: #e3f2fd;
+            color: #1877f2;
+        }
+
+        .role-badge.guest {
+            background-color: #f5f5f5;
+            color: #666;
+        }
+
+        .action-links {
+            display: flex;
+            gap: 0.5rem;
+        }
+
+        .action-links a {
+            padding: 0.5rem 0.75rem;
+            background-color: #1877f2;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 0.875rem;
+            transition: background-color 0.2s;
+        }
+
+        .action-links a:hover {
+            background-color: #165fc4;
+        }
+
+        .no-users {
+            text-align: center;
+            padding: 2rem;
+            color: #999;
+        }
+
+        .pagination {
+            display: flex;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-top: 2rem;
+            padding: 1rem;
+        }
+
+        .pagination a,
+        .pagination span {
+            padding: 0.5rem 0.75rem;
+            border: 1px solid #e5e5e5;
+            border-radius: 4px;
+            text-decoration: none;
+            color: #333;
+        }
+
+        .pagination a:hover {
+            background-color: #1877f2;
+            color: white;
+            border-color: #1877f2;
+        }
+
+        .pagination .current {
+            background-color: #1877f2;
+            color: white;
+            border-color: #1877f2;
+        }
+    </style>
+{% endblock %}
+
+{% block content %}
+    <div class="container">
+        <!-- Header -->
+        <div class="dashboard-header">
+            <div>
+                <h1>Admin Dashboard</h1>
+                <p>Manage users and permissions</p>
+            </div>
+            <div>
+                <a href="{% url 'core:home' %}" style="color: #1877f2; text-decoration: none;">&larr; Back to Home</a>
+            </div>
+        </div>
+
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat-card">
+                <p>Total Users</p>
+                <h3>{{ total_users }}</h3>
+            </div>
+            <div class="stat-card">
+                <p>Admins</p>
+                <h3>{{ page_obj.paginator.count|default:0 }}</h3>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="filters">
+            <form method="get" action="{% url 'accounts:dashboard' %}">
+                <div>
+                    <label for="search">Search by name or email:</label>
+                    <input type="text" id="search" name="search" value="{{ search_query }}" placeholder="Username or email...">
+                </div>
+                <div>
+                    <label for="role">Role:</label>
+                    <select id="role" name="role">
+                        <option value="">All</option>
+                        <option value="guest" {% if role_filter == 'guest' %}selected{% endif %}>Guest</option>
+                        <option value="admin" {% if role_filter == 'admin' %}selected{% endif %}>Admin</option>
+                    </select>
+                </div>
+                <button type="submit">Filter</button>
+            </form>
+        </div>
+
+        <!-- Users Table -->
+        <div class="users-table">
+            {% if page_obj.object_list %}
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Username</th>
+                            <th>Email</th>
+                            <th>Name</th>
+                            <th>Role</th>
+                            <th>Joined</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for user in page_obj %}
+                            <tr>
+                                <td><strong>{{ user.username }}</strong></td>
+                                <td>{{ user.email }}</td>
+                                <td>{{ user.get_full_name|default:"—" }}</td>
+                                <td>
+                                    <span class="role-badge {{ user.role }}">
+                                        {{ user.get_role_display }}
+                                    </span>
+                                </td>
+                                <td>{{ user.date_joined|date:"M d, Y" }}</td>
+                                <td>
+                                    <div class="action-links">
+                                        <a href="{% url 'accounts:user_detail' user.id %}">View</a>
+                                    </div>
+                                </td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% else %}
+                <div class="no-users">
+                    <p>No users found matching your filters.</p>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Pagination -->
+        {% if page_obj.has_other_pages %}
+            <div class="pagination">
+                {% if page_obj.has_previous %}
+                    <a href="?page=1{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}">&laquo; First</a>
+                    <a href="?page={{ page_obj.previous_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}">&lsaquo; Previous</a>
+                {% endif %}
+
+                {% for num in page_obj.paginator.page_range %}
+                    {% if page_obj.number == num %}
+                        <span class="current">{{ num }}</span>
+                    {% else %}
+                        <a href="?page={{ num }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}">{{ num }}</a>
+                    {% endif %}
+                {% endfor %}
+
+                {% if page_obj.has_next %}
+                    <a href="?page={{ page_obj.next_page_number }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}">Next &rsaquo;</a>
+                    <a href="?page={{ page_obj.paginator.num_pages }}{% if search_query %}&search={{ search_query }}{% endif %}{% if role_filter %}&role={{ role_filter }}{% endif %}">Last &raquo;</a>
+                {% endif %}
+            </div>
+        {% endif %}
+    </div>
+{% endblock %}
